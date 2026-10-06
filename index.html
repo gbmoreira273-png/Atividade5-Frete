@@ -1,0 +1,794 @@
+<!DOCTYPE html> <html lang="pt-BR"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora de Frete | UNINASSAU Parangaba</title>
+
+<style>
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    body {
+        font-family: Arial, Helvetica, sans-serif;
+        background: #f4f6f8;
+        color: #222;
+    }
+
+    header {
+        background: linear-gradient(135deg, #111827, #2563eb);
+        color: white;
+        padding: 35px 20px;
+        text-align: center;
+    }
+
+    header h1 {
+        font-size: 32px;
+        margin-bottom: 10px;
+    }
+
+    header p {
+        opacity: 0.9;
+    }
+
+    .container {
+        max-width: 850px;
+        margin: 35px auto;
+        padding: 0 20px;
+    }
+
+    .card {
+        background: white;
+        border-radius: 16px;
+        padding: 30px;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+        margin-bottom: 25px;
+    }
+
+    .card h2 {
+        margin-bottom: 20px;
+        color: #111827;
+    }
+
+    .form-group {
+        margin-bottom: 18px;
+    }
+
+    label {
+        display: block;
+        font-weight: bold;
+        margin-bottom: 7px;
+    }
+
+    input {
+        width: 100%;
+        padding: 13px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 16px;
+        outline: none;
+    }
+
+    input:focus {
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+    }
+
+    button {
+        width: 100%;
+        padding: 15px;
+        border: none;
+        border-radius: 8px;
+        background: #2563eb;
+        color: white;
+        font-size: 17px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    button:hover {
+        background: #1d4ed8;
+    }
+
+    button:disabled {
+        background: #9ca3af;
+        cursor: not-allowed;
+    }
+
+    .endereco {
+        background: #f3f4f6;
+        padding: 15px;
+        border-radius: 8px;
+        margin-top: 20px;
+        line-height: 1.7;
+    }
+
+    .resultado {
+        display: none;
+    }
+
+    .resultado-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+
+    .resultado-item {
+        background: #f8fafc;
+        border-radius: 10px;
+        padding: 20px;
+        border: 1px solid #e5e7eb;
+    }
+
+    .resultado-item span {
+        display: block;
+        color: #6b7280;
+        font-size: 14px;
+        margin-bottom: 7px;
+    }
+
+    .resultado-item strong {
+        font-size: 22px;
+        color: #111827;
+    }
+
+    .total {
+        margin-top: 20px;
+        padding: 25px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #16a34a, #15803d);
+        color: white;
+        text-align: center;
+    }
+
+    .total span {
+        display: block;
+        font-size: 15px;
+        opacity: 0.9;
+    }
+
+    .total strong {
+        display: block;
+        font-size: 38px;
+        margin-top: 5px;
+    }
+
+    .erro {
+        display: none;
+        background: #fee2e2;
+        color: #991b1b;
+        padding: 15px;
+        border-radius: 8px;
+        margin-top: 15px;
+    }
+
+    .loading {
+        display: none;
+        text-align: center;
+        margin-top: 15px;
+        color: #2563eb;
+        font-weight: bold;
+    }
+
+    .config {
+        background: #eff6ff;
+        border-left: 4px solid #2563eb;
+        padding: 15px;
+        margin-bottom: 20px;
+        border-radius: 5px;
+    }
+
+    footer {
+        text-align: center;
+        padding: 30px;
+        color: #6b7280;
+        font-size: 13px;
+    }
+
+    @media (max-width: 600px) {
+        header h1 {
+            font-size: 25px;
+        }
+
+        .card {
+            padding: 20px;
+        }
+
+        .resultado-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+</head> <body> <header> <h1>Calculadora de Frete</h1> <p>Entrega com base na distância até a UNINASSAU Parangaba</p> </header> <div class="container">
+<div class="card">
+
+    <h2>Calcule seu frete</h2>
+
+    <div class="config">
+        <strong>Como funciona?</strong>
+        <p>
+            Informe seu CEP. O sistema consulta o endereço,
+            calcula a distância até a UNINASSAU Parangaba
+            e estima o custo de entrega com base em uma tarifa
+            configurável por quilômetro.
+        </p>
+    </div>
+
+    <div class="form-group">
+        <label for="cep">CEP de destino</label>
+
+        <input
+            type="text"
+            id="cep"
+            placeholder="Ex.: 60710-000"
+            maxlength="9"
+        >
+    </div>
+
+    <div class="form-group">
+        <label for="valorKm">
+            Valor estimado do Moto por km (R$)
+        </label>
+
+        <input
+            type="number"
+            id="valorKm"
+            value="2.50"
+            min="0"
+            step="0.10"
+        >
+    </div>
+
+    <div class="form-group">
+        <label for="taxaBase">
+            Taxa base da entrega (R$)
+        </label>
+
+        <input
+            type="number"
+            id="taxaBase"
+            value="5.00"
+            min="0"
+            step="0.50"
+        >
+    </div>
+
+    <button id="calcular">
+        Calcular frete
+    </button>
+
+    <div class="loading" id="loading">
+        Calculando endereço e distância...
+    </div>
+
+    <div class="erro" id="erro"></div>
+
+</div>
+
+<div class="card resultado" id="resultado">
+
+    <h2>Resultado</h2>
+
+    <div class="endereco" id="endereco">
+    </div>
+
+    <br>
+
+    <div class="resultado-grid">
+
+        <div class="resultado-item">
+            <span>Distância</span>
+            <strong id="distancia">0 km</strong>
+        </div>
+
+        <div class="resultado-item">
+            <span>Tempo estimado</span>
+            <strong id="tempo">0 min</strong>
+        </div>
+
+        <div class="resultado-item">
+            <span>Custo estimado do Moto</span>
+            <strong id="custoMoto">R$ 0,00</strong>
+        </div>
+
+        <div class="resultado-item">
+            <span>Taxa base</span>
+            <strong id="taxaBaseResultado">R$ 0,00</strong>
+        </div>
+
+    </div>
+
+    <div class="total">
+
+        <span>
+            Frete estimado
+        </span>
+
+        <strong id="freteTotal">
+            R$ 0,00
+        </strong>
+
+    </div>
+
+</div>
+
+</div> <footer> Dados de endereço: ViaCEP • Mapas e rotas: OpenStreetMap / OSRM </footer> <script>
+/*
+ * ============================================================
+ * CONFIGURAÇÕES
+ * ============================================================
+ */
+
+// Coordenadas aproximadas da UNINASSAU Parangaba.
+//
+// IMPORTANTE:
+// Confirme as coordenadas exatas da unidade antes de colocar
+// este sistema em produção.
+
+const ORIGEM = {
+    lat: -3.7696,
+    lon: -38.5700
+};
+
+/*
+ * ============================================================
+ * ELEMENTOS DA PÁGINA
+ * ============================================================
+ */
+
+const cepInput = document.getElementById("cep");
+
+const calcularButton =
+    document.getElementById("calcular");
+
+const loading =
+    document.getElementById("loading");
+
+const erro =
+    document.getElementById("erro");
+
+const resultado =
+    document.getElementById("resultado");
+
+/*
+ * ============================================================
+ * MÁSCARA DO CEP
+ * ============================================================
+ */
+
+cepInput.addEventListener("input", function () {
+
+    let valor = this.value.replace(/\D/g, "");
+
+    if (valor.length > 5) {
+        valor =
+            valor.substring(0, 5)
+            + "-"
+            + valor.substring(5, 8);
+    }
+
+    this.value = valor;
+
+});
+
+/*
+ * ============================================================
+ * MOSTRAR ERRO
+ * ============================================================
+ */
+
+function mostrarErro(mensagem) {
+
+    erro.textContent = mensagem;
+
+    erro.style.display = "block";
+
+    resultado.style.display = "none";
+
+}
+
+/*
+ * ============================================================
+ * LIMPAR ERRO
+ * ============================================================
+ */
+
+function limparErro() {
+
+    erro.textContent = "";
+
+    erro.style.display = "none";
+
+}
+
+/*
+ * ============================================================
+ * FORMATAR DINHEIRO
+ * ============================================================
+ */
+
+function dinheiro(valor) {
+
+    return valor.toLocaleString("pt-BR", {
+        style: "currency",
+        currency: "BRL"
+    });
+
+}
+
+/*
+ * ============================================================
+ * FORMATAR DISTÂNCIA
+ * ============================================================
+ */
+
+function formatarDistancia(metros) {
+
+    const km = metros / 1000;
+
+    return km.toFixed(2) + " km";
+
+}
+
+/*
+ * ============================================================
+ * CONSULTAR CEP
+ * ============================================================
+ */
+
+async function consultarCEP(cep) {
+
+    const url =
+        `https://viacep.com.br/ws/${cep}/json/`;
+
+    const response =
+        await fetch(url);
+
+    if (!response.ok) {
+
+        throw new Error(
+            "Não foi possível consultar o CEP."
+        );
+
+    }
+
+    const dados =
+        await response.json();
+
+    if (dados.erro) {
+
+        throw new Error(
+            "CEP não encontrado."
+        );
+
+    }
+
+    return dados;
+
+}
+
+/*
+ * ============================================================
+ * GEOCODIFICAR ENDEREÇO
+ *
+ * Nominatim / OpenStreetMap
+ * ============================================================
+ */
+
+async function obterCoordenadas(endereco) {
+
+    const consulta = encodeURIComponent(
+        `${endereco.logradouro}, ${endereco.bairro}, ${endereco.localidade}, ${endereco.uf}, Brasil`
+    );
+
+    const url =
+        `https://nominatim.openstreetmap.org/search` +
+        `?q=${consulta}` +
+        `&format=jsonv2` +
+        `&limit=1` +
+        `&countrycodes=br`;
+
+    const response =
+        await fetch(url);
+
+    if (!response.ok) {
+
+        throw new Error(
+            "Não foi possível localizar o endereço no mapa."
+        );
+
+    }
+
+    const dados =
+        await response.json();
+
+    if (!dados.length) {
+
+        throw new Error(
+            "Não foi possível encontrar as coordenadas deste endereço."
+        );
+
+    }
+
+    return {
+        lat: parseFloat(dados[0].lat),
+        lon: parseFloat(dados[0].lon)
+    };
+
+}
+
+/*
+ * ============================================================
+ * CALCULAR ROTA
+ *
+ * OSRM
+ * ============================================================
+ */
+
+async function calcularRota(destino) {
+
+    const coordenadas =
+        `${ORIGEM.lon},${ORIGEM.lat};` +
+        `${destino.lon},${destino.lat}`;
+
+    const url =
+        `https://router.project-osrm.org/route/v1/driving/` +
+        `${coordenadas}` +
+        `?overview=false`;
+
+    const response =
+        await fetch(url);
+
+    if (!response.ok) {
+
+        throw new Error(
+            "Não foi possível calcular a rota."
+        );
+
+    }
+
+    const dados =
+        await response.json();
+
+    if (
+        dados.code !== "Ok" ||
+        !dados.routes ||
+        !dados.routes.length
+    ) {
+
+        throw new Error(
+            "Não foi encontrada uma rota para esse endereço."
+        );
+
+    }
+
+    return dados.routes[0];
+
+}
+
+/*
+ * ============================================================
+ * CALCULAR FRETE
+ * ============================================================
+ */
+
+async function calcularFrete() {
+
+    limparErro();
+
+    resultado.style.display = "none";
+
+    const cep =
+        cepInput.value.replace(/\D/g, "");
+
+    const valorKm =
+        parseFloat(
+            document.getElementById("valorKm").value
+        );
+
+    const taxaBase =
+        parseFloat(
+            document.getElementById("taxaBase").value
+        );
+
+    /*
+     * VALIDAÇÕES
+     */
+
+    if (cep.length !== 8) {
+
+        mostrarErro(
+            "Digite um CEP válido com 8 números."
+        );
+
+        return;
+
+    }
+
+    if (isNaN(valorKm) || valorKm < 0) {
+
+        mostrarErro(
+            "Informe um valor válido para o preço por km."
+        );
+
+        return;
+
+    }
+
+    if (isNaN(taxaBase) || taxaBase < 0) {
+
+        mostrarErro(
+            "Informe uma taxa base válida."
+        );
+
+        return;
+
+    }
+
+    /*
+     * MOSTRAR LOADING
+     */
+
+    loading.style.display = "block";
+
+    calcularButton.disabled = true;
+
+    try {
+
+        /*
+         * 1. CONSULTA CEP
+         */
+
+        const endereco =
+            await consultarCEP(cep);
+
+        /*
+         * 2. MOSTRA ENDEREÇO
+         */
+
+        document.getElementById("endereco").innerHTML = `
+            <strong>Destino:</strong><br>
+
+            ${endereco.logradouro || "Logradouro não informado"}
+            ${endereco.bairro ? ", " + endereco.bairro : ""}<br>
+
+            ${endereco.localidade} - ${endereco.uf}<br>
+
+            CEP: ${endereco.cep}
+        `;
+
+        /*
+         * 3. TRANSFORMA ENDEREÇO EM COORDENADAS
+         */
+
+        const destino =
+            await obterCoordenadas(endereco);
+
+        /*
+         * 4. CALCULA ROTA
+         */
+
+        const rota =
+            await calcularRota(destino);
+
+        /*
+         * 5. DISTÂNCIA
+         */
+
+        const distanciaKm =
+            rota.distance / 1000;
+
+        /*
+         * 6. TEMPO
+         */
+
+        const tempoMinutos =
+            Math.ceil(rota.duration / 60);
+
+        /*
+         * 7. CUSTO ESTIMADO DO MOTO
+         */
+
+        const custoMoto =
+            distanciaKm * valorKm;
+
+        /*
+         * 8. FRETE FINAL
+         *
+         * Fórmula:
+         *
+         * Frete =
+         * Taxa base +
+         * (distância × preço/km)
+         */
+
+        const freteTotal =
+            taxaBase + custoMoto;
+
+        /*
+         * 9. MOSTRAR RESULTADOS
+         */
+
+        document.getElementById("distancia")
+            .textContent =
+            formatarDistancia(rota.distance);
+
+        document.getElementById("tempo")
+            .textContent =
+            `${tempoMinutos} min`;
+
+        document.getElementById("custoMoto")
+            .textContent =
+            dinheiro(custoMoto);
+
+        document.getElementById("taxaBaseResultado")
+            .textContent =
+            dinheiro(taxaBase);
+
+        document.getElementById("freteTotal")
+            .textContent =
+            dinheiro(freteTotal);
+
+        resultado.style.display = "block";
+
+        /*
+         * Rola a tela até o resultado
+         */
+
+        resultado.scrollIntoView({
+            behavior: "smooth"
+        });
+
+    }
+
+    catch (error) {
+
+        console.error(error);
+
+        mostrarErro(
+            error.message ||
+            "Ocorreu um erro ao calcular o frete."
+        );
+
+    }
+
+    finally {
+
+        loading.style.display = "none";
+
+        calcularButton.disabled = false;
+
+    }
+
+}
+
+/*
+ * ============================================================
+ * BOTÃO
+ * ============================================================
+ */
+
+calcularButton.addEventListener(
+    "click",
+    calcularFrete
+);
+
+/*
+ * Permite pressionar ENTER no CEP
+ */
+
+cepInput.addEventListener(
+    "keydown",
+    function(event) {
+
+        if (event.key === "Enter") {
+
+            calcularFrete();
+
+        }
+
+    }
+);
+
+</script> </body> </html>
